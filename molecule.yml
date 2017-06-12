@@ -1,0 +1,35 @@
+---
+
+dependency:
+  name: galaxy
+  requirements_file: requirements.yml
+driver:
+  name: vagrant
+vagrant:
+  platforms:
+    - name: centos
+      box: centos/7
+  providers:
+    - name: virtualbox
+      type: virtualbox
+      options:
+        memory: 256
+        cpus: 2
+  instances:
+    - name: prometheus-idi-server
+      raw_config_args:
+        - "vm.network 'private_network', type: 'dhcp'"
+      ansible_groups:
+        - server
+    - name: prometheus-idi-client
+      raw_config_args:
+        - "vm.network 'private_network', type: 'dhcp'"
+      ansible_groups:
+        - client
+    - name: prometheus-idi-dockerhost
+      raw_config_args:
+        - "vm.network 'private_network', type: 'dhcp'"
+      ansible_groups:
+        - dockerhost
+verifier:
+  name: testinfra

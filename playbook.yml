@@ -1,0 +1,74 @@
+---
+
+- hosts: all
+  pre_tasks:
+    - name: Install some packages needed for testing
+      yum: name={{item}} state=present
+      with_items:
+        - net-tools
+        - vim
+ 
+- hosts: client
+  roles:
+    - role: geerlingguy.ntp
+    - role: williamyeh.prometheus
+  vars:
+    prometheus_components:
+      - "node_exporter"
+    ntp_timezone: Europe/Madrid
+
+- hosts: dockerhost
+  roles:
+    - geerlingguy.ntp
+    - geerlingguy.docker
+    - williamyeh.prometheus
+  vars:
+    prometheus_components:
+      - "node_exporter"
+    ntp_timezone: Europe/Madrid
+    #    pip_install_packages:
+    #      - name: docker
+
+  pre_tasks:
+    - name: Install some packages needed for testing
+      yum: name=python-docker state=present 
+
+  tasks:
+    - name: Deploy Cadvisor
+      docker:
+        name: cadvisor
+        image: google/cadvisor
+        state: started
+        ports:
+          - "8080:8080/tcp"
+        volumes:
+          - "/:/rootfs:ro"
+          - "/var/run:/var/run:rw"
+          - "/sys:/sys:ro"
+          - "/var/lib/docker/:/var/lib/docker:ro"
+    - name: Deploy Grafana
+      docker:
+        name: grafana
+        image: grafana/grafana
+        ports:
+          - "3000:3000/tcp"
+        env:
+          GF_SECURITY_ADMIN_PASSWORD: foobar
+          GF_USERS_ALLOW_SIGN_UP: false
+
+- hosts: server
+  roles:
+    - geerlingguy.ntp
+    - williamyeh.prometheus
+  vars:
+    prometheus_components:
+      - "prometheus"
+      - "node_exporter"
+      - "alertmanager"
+    prometheus_conf_main: "configs/prometheus/prometheus.yml.j2"
+    prometheus_rule_files:
+      default_alert:
+        src: "configs/prometheus/alert.rules"
+        dest: "alert.rules"
+    prometheus_alertmanager_conf: "configs/alertmanager/config.yml.j2"
+    ntp_timezone: Europe/Madrid

@@ -1,0 +1,5 @@
+---
+
+- src: williamyeh.prometheus
+- src: geerlingguy.ntp
+- src: geerlingguy.docker
