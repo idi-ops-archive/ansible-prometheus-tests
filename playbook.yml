@@ -1,40 +1,39 @@
 ---
 
 - hosts: all
+  # Prometheus requires that the time of the servers is synchronized
+  roles:
+    - role: geerlingguy.ntp
+      ntp_timezone: Europe/Madrid
   pre_tasks:
     - name: Install some packages needed for testing
       yum: name={{item}} state=present
       with_items:
         - net-tools
         - vim
- 
+
+# Sample of baremetal host monitoring using node_exporter
 - hosts: client
   roles:
-    - role: geerlingguy.ntp
     - role: williamyeh.prometheus
-  vars:
-    prometheus_components:
-      - "node_exporter"
-    ntp_timezone: Europe/Madrid
+      prometheus_components:
+        - "node_exporter"
 
+# Sample of docker host monitoring using node_exporter and Cadvisor for
+# container monitoring. Grafana container is deployed here.
 - hosts: dockerhost
   roles:
-    - geerlingguy.ntp
-    - geerlingguy.docker
-    - williamyeh.prometheus
-  vars:
-    prometheus_components:
-      - "node_exporter"
-    ntp_timezone: Europe/Madrid
-    #    pip_install_packages:
-    #      - name: docker
+    - role: geerlingguy.docker
+    - role: williamyeh.prometheus
+      prometheus_components:
+        - "node_exporter"
 
   pre_tasks:
-    - name: Install some packages needed for testing
-      yum: name=python-docker state=present 
+    - name: Install Python-Docker for Ansible management
+      yum: name=python-docker state=present
 
   tasks:
-    - name: Deploy Cadvisor
+    - name: Deploy Cadvisor container
       docker:
         name: cadvisor
         image: google/cadvisor
@@ -46,7 +45,7 @@
           - "/var/run:/var/run:rw"
           - "/sys:/sys:ro"
           - "/var/lib/docker/:/var/lib/docker:ro"
-    - name: Deploy Grafana
+    - name: Deploy Grafana container
       docker:
         name: grafana
         image: grafana/grafana
@@ -56,19 +55,18 @@
           GF_SECURITY_ADMIN_PASSWORD: foobar
           GF_USERS_ALLOW_SIGN_UP: false
 
+# Sample of deployment of a Prometheus server. It uses templates for the config
+# files.
 - hosts: server
   roles:
-    - geerlingguy.ntp
-    - williamyeh.prometheus
-  vars:
-    prometheus_components:
-      - "prometheus"
-      - "node_exporter"
-      - "alertmanager"
-    prometheus_conf_main: "configs/prometheus/prometheus.yml.j2"
-    prometheus_rule_files:
-      default_alert:
-        src: "configs/prometheus/alert.rules"
-        dest: "alert.rules"
-    prometheus_alertmanager_conf: "configs/alertmanager/config.yml.j2"
-    ntp_timezone: Europe/Madrid
+    - role: williamyeh.prometheus
+      prometheus_components:
+        - "prometheus"
+        - "node_exporter"
+        - "alertmanager"
+      prometheus_conf_main: "configs/prometheus/prometheus.yml.j2"
+      prometheus_rule_files:
+        default_alert:
+          src: "configs/prometheus/alert.rules"
+          dest: "alert.rules"
+      prometheus_alertmanager_conf: "configs/alertmanager/config.yml.j2"
