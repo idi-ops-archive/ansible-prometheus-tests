@@ -2,4 +2,5 @@
 
 - src: williamyeh.prometheus
 - src: geerlingguy.ntp
-- src: geerlingguy.docker
+- src: https://github.com/idi-ops/ansible-docker.git
+  name: docker

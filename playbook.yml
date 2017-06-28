@@ -23,14 +23,10 @@
 # container monitoring. Grafana container is deployed here.
 - hosts: dockerhost
   roles:
-    - role: geerlingguy.docker
+    - role: docker
     - role: williamyeh.prometheus
       prometheus_components:
         - "node_exporter"
-
-  pre_tasks:
-    - name: Install Python-Docker for Ansible management
-      yum: name=python-docker state=present
 
   tasks:
     - name: Deploy Cadvisor container
