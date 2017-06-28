@@ -1,10 +1,28 @@
 ---
 
+# Some roles used in GPII infrastructure have test tasks that make the
+# idempotence tests fail. The following section excludes the 'test' tag.
+ansible:
+  skip_tags: "test"
+
 dependency:
   name: galaxy
   requirements_file: requirements.yml
 driver:
   name: vagrant
+
+# Change the testing sequence to avoid de idempotence test
+# Until the mainstream prometheus role solves the issue, a PR has been proposed
+# to solve this issue:
+# https://github.com/William-Yeh/ansible-prometheus/pull/52
+molecule:
+  test:
+    sequence:
+      - destroy
+      - syntax
+      - create
+      - converge
+      - verify
 vagrant:
   platforms:
     - name: centos
