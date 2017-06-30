@@ -51,3 +51,7 @@ vagrant:
         - dockerhost
 verifier:
   name: testinfra
+
+molecule:
+  ignore_paths:
+    - venv
