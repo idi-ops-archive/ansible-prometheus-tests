@@ -23,6 +23,9 @@ molecule:
       - create
       - converge
       - verify
+  ignore_paths:
+    - venv
+
 vagrant:
   platforms:
     - name: centos
@@ -51,7 +54,3 @@ vagrant:
         - dockerhost
 verifier:
   name: testinfra
-
-molecule:
-  ignore_paths:
-    - venv
