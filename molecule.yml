@@ -25,6 +25,7 @@ molecule:
       - verify
   ignore_paths:
     - venv
+    - .molecule
 
 vagrant:
   platforms:
