@@ -4,3 +4,6 @@
 .ropeproject
 *.pyc
 __pycache__
+.*.sw?
+pytestdebug.log
+venv

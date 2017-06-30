@@ -1,0 +1,5 @@
+ansible
+flake8
+molecule
+python-vagrant
+setuptools > 0.9.8 
